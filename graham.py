@@ -16,9 +16,9 @@ def generate_targets(num, range_x, range_y, clustered = False):
         return targets
     else:
         centers = [(10, 10), (5, 5), (0,10)]
-        cluster_std = [0.8, 1, 2]
+        cluster_std = [0.6, 1, 0.5]
 
-        targets, Y = make_blobs(n_samples=num, cluster_std=cluster_std, centers=centers, n_features=2, random_state=1)
+        targets, Y = make_blobs(n_samples=num, cluster_std=cluster_std, centers=centers, n_features=2, random_state=4)
         return targets
 
 def calculate_hulls(targets, output = []):
@@ -86,7 +86,7 @@ def plotme(targets, hulls):
 
     color = cm.rainbow(np.linspace(0, 1, len(hulls)))
     for i, hull in enumerate(hulls):
-        axes.plot(hull[:, 0], hull[:,1], 'ro-', c=color[i])
+        axes.plot(hull[:, 0], hull[:,1], 'ro-', c=color[i], alpha = 0.5)
     plt.show()
     """try:
         for i, ax in enumerate(axes):
