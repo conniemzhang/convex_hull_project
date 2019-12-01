@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.spatial as spatial
 from sklearn.datasets.samples_generator import make_blobs
+import matplotlib.cm as cm
 
 def generate_targets(num, range_x, range_y, clustered = False):
     if clustered == False:
@@ -14,14 +15,15 @@ def generate_targets(num, range_x, range_y, clustered = False):
             i += 1
         return targets
     else:
-        centers = [(10, 10), (5, 5)]
-        cluster_std = [0.8, 1]
+        centers = [(10, 10), (5, 5), (0,10)]
+        cluster_std = [0.8, 1, 2]
 
         targets, Y = make_blobs(n_samples=num, cluster_std=cluster_std, centers=centers, n_features=2, random_state=1)
         return targets
 
-def calculate_hulls(targets):
+def calculate_hulls(targets, output = []):
     # returns array of points in the hull
+    print("calculate_hulls")
     def turn(p1, p2, p3):
         return (p2[0] - p1[0])*(p3[1] - p1[1]) - (p2[1] - p1[1]) * (p3[0] - p1[0])
 
@@ -41,30 +43,82 @@ def calculate_hulls(targets):
 
     sorted_targets = sort_by_angle(targets)
     hull = []
+    spares = []
+    d = 2 # max distance between points
     for p1 in sorted_targets:
-        while len(hull) > 1 and turn(hull[-2], hull[-1], p1) < 0:
-            hull.pop()
-        hull.append(p1)
+        print("p1 - ", p1)
+        if len(hull) > 0 and np.linalg.norm(p1 - hull[-1]) > d:
+            print("appending to spares")
+            spares.append(p1)
+        else:
+            print("appending to hull")
+            while len(hull) > 1 and turn(hull[-2], hull[-1], p1) < 0:
+                print("popping")
+                hull.pop()
+            hull.append(p1)
+
     hull.append(sorted_targets[0])
-    return np.array(hull)
+    """if len(spares) > 0:
+        returned = calculate_hulls(np.array([[spare[0], spare[1]] for spare in spares]))
+        hullset.append(returned)
+        print("returning", returned)
+        return hullset"
+        """
+    return hull, [[spare[0], spare[1]] for spare in spares]
 
+def multi_hull(targets):
+    hull, spares = calculate_hulls(targets)
+    hullset = [] # a LIST of NUMPY arrays
+    hullset.append(np.array(hull))
+    while len(spares) != 0:
+        hull, spares = calculate_hulls(np.array(spares))
+        hullset.append(np.array(hull))
+    return hullset
 
-def plotme(ax, targets, hull):
-    ax.set(title = 'Convex Hull Plot')
-    ax.set_xlim(-2, 15)
-    ax.set_xlim(-2, 15)
-    ax.plot(targets[:, 0], targets[:,1], 'bo')
-    ax.plot(hull[:, 0], hull[:,1], 'ro-')
+def plotme(targets, hulls):
+    # target = np.array
+    # hulls = [[np.array], [np.array], ...]
+    fig, axes = plt.subplots(1, 1)
+    axes.set_xlim(-2, 15)
+    axes.set_xlim(-2, 15)
+    axes.set(title = 'Single Convex Hull Plot')
+    axes.plot(targets[:, 0], targets[:,1], 'bo')
+
+    color = cm.rainbow(np.linspace(0, 1, len(hulls)))
+    for i, hull in enumerate(hulls):
+        axes.plot(hull[:, 0], hull[:,1], 'ro-', c=color[i])
     plt.show()
+    """try:
+        for i, ax in enumerate(axes):
+            ax.set(title = 'Convex Hull Plot')
+            ax.set_xlim(-2, 15)
+            ax.set_xlim(-2, 15)
+            tar = targets[i][0]
+            hull = hulls[i][0]
+            print("tar", tar[0])
+            ax.plot(tar[:, 0], tar[:,1], 'bo')
+            ax.plot(hull[:, 0], hull[:,1], 'ro-')
+        plt.show()
+    except TypeError:
+        #color = cm.viridis(np.linspace(0, 1, len(targets[0][0])))
+        axes.set(title = 'Single Convex Hull Plot')
+        tar = targets[0][0]
+        axes.plot(tar[:, 0], tar[:,1], 'bo')
+
+        for x in hulls:
+            print("hull[0]", x)
+            hull = x[0]
+            axes.plot(hull[:, 0], hull[:,1], 'ro-')
+        plt.show()"""
 
 if __name__ == '__main__':
-    fig, ax = plt.subplots(1, 1)
 
     range_gx = 15
     range_gy = 15
     axis_range = range_gx * 1.8 #adds buffer so you can see all the hulls.
-    #targets = np.array(generate_targets(50, range_gx, range_gy, clustered = True))
-    targets = np.loadtxt('testbasic.txt', delimiter="\t")
-    hull = calculate_hulls(targets)
-    print("hull", hull)
-    plotme(ax, targets, hull)
+    targets2 = np.array(generate_targets(50, range_gx, range_gy, clustered = True))
+    #targets2 = np.loadtxt('testbasic.txt', delimiter="\t")
+    hull2 = multi_hull(targets2)
+    #hull2 = np.array(multi_hull(targets2))
+
+    plotme(targets2, hull2)
