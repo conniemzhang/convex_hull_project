@@ -58,12 +58,6 @@ def calculate_hulls(targets, output = []):
             hull.append(p1)
 
     hull.append(sorted_targets[0])
-    """if len(spares) > 0:
-        returned = calculate_hulls(np.array([[spare[0], spare[1]] for spare in spares]))
-        hullset.append(returned)
-        print("returning", returned)
-        return hullset"
-        """
     return hull, [[spare[0], spare[1]] for spare in spares]
 
 def multi_hull(targets):
@@ -88,28 +82,6 @@ def plotme(targets, hulls):
     for i, hull in enumerate(hulls):
         axes.plot(hull[:, 0], hull[:,1], 'ro-', c=color[i], alpha = 0.5)
     plt.show()
-    """try:
-        for i, ax in enumerate(axes):
-            ax.set(title = 'Convex Hull Plot')
-            ax.set_xlim(-2, 15)
-            ax.set_xlim(-2, 15)
-            tar = targets[i][0]
-            hull = hulls[i][0]
-            print("tar", tar[0])
-            ax.plot(tar[:, 0], tar[:,1], 'bo')
-            ax.plot(hull[:, 0], hull[:,1], 'ro-')
-        plt.show()
-    except TypeError:
-        #color = cm.viridis(np.linspace(0, 1, len(targets[0][0])))
-        axes.set(title = 'Single Convex Hull Plot')
-        tar = targets[0][0]
-        axes.plot(tar[:, 0], tar[:,1], 'bo')
-
-        for x in hulls:
-            print("hull[0]", x)
-            hull = x[0]
-            axes.plot(hull[:, 0], hull[:,1], 'ro-')
-        plt.show()"""
 
 if __name__ == '__main__':
 
